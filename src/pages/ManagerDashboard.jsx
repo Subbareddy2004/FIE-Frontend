@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
+import api from '../services/api';
 
 const ManagerDashboard = () => {
     const [events, setEvents] = useState([]);
@@ -13,19 +13,28 @@ const ManagerDashboard = () => {
     useEffect(() => {
         const fetchEvents = async () => {
             try {
-                const response = await axios.get('http://localhost:5000/api/events/manager', {
+                const response = await api.get('/api/events/manager', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 setEvents(response.data);
                 setLoading(false);
             } catch (error) {
+                console.error('Error fetching events:', error);
                 toast.error('Failed to load events');
                 setLoading(false);
+                if (error.response?.status === 401) {
+                    navigate('/manager/login');
+                }
             }
         };
 
+        if (!token) {
+            navigate('/manager/login');
+            return;
+        }
+
         fetchEvents();
-    }, [token]);
+    }, [token, navigate]);
 
     if (loading) {
         return (

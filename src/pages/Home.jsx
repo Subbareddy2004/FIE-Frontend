@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
+import api from '../services/api';
+import { toast } from 'react-hot-toast';
 
 const Home = () => {
   const [events, setEvents] = useState([]);
@@ -10,11 +11,12 @@ const Home = () => {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const { data } = await axios.get('http://localhost:5000/api/events');
+        const { data } = await api.get('/api/events');
         setEvents(data);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching events:', error);
+        toast.error('Failed to load events');
         setLoading(false);
       }
     };
