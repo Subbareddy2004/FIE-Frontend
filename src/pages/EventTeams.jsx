@@ -30,7 +30,8 @@ const EventTeams = () => {
                 ]);
 
                 setEvent(eventRes.data);
-                setTeams(teamsRes.data || []);
+                // Ensure teams is always an array
+                setTeams(Array.isArray(teamsRes.data?.teams) ? teamsRes.data.teams : []);
                 setLoading(false);
             } catch (error) {
                 console.error('Error fetching data:', error);

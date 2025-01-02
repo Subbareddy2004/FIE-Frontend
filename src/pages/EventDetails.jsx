@@ -43,7 +43,8 @@ const EventDetails = () => {
                     };
                     try {
                         const teamsRes = await api.get(`/api/teams/event/${id}`, config);
-                        setTeams(teamsRes.data);
+                        // Ensure teams is always an array
+                        setTeams(Array.isArray(teamsRes.data?.teams) ? teamsRes.data.teams : []);
                     } catch (error) {
                         if (error.response?.status === 401) {
                             localStorage.removeItem('token');
