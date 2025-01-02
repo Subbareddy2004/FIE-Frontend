@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import toast from 'react-hot-toast';
+import api from '../services/api';
 
 const ManagerLogin = () => {
     const navigate = useNavigate();
@@ -17,7 +17,7 @@ const ManagerLogin = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const { data } = await axios.post('http://localhost:5000/api/auth/login', formData);
+            const { data } = await api.post('/api/auth/login', formData);
             localStorage.setItem('token', data.token);
             localStorage.setItem('managerInfo', JSON.stringify(data));
             toast.success('Login successful!');
