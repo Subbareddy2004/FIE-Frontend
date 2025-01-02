@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { useParams, useNavigate } from 'react-router-dom';
 import { format, parseISO, isValid } from 'date-fns';
 import toast from 'react-hot-toast';
+import api from '../services/api';
 import { CSVLink } from 'react-csv';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
@@ -30,7 +30,7 @@ const EventDetails = () => {
     useEffect(() => {
         const fetchEventAndTeams = async () => {
             try {
-                const eventRes = await axios.get(`http://localhost:5000/api/events/${id}`);
+                const eventRes = await api.get(`/api/events/${id}`);
                 setEvent(eventRes.data);
                 
                 const token = localStorage.getItem('token');
@@ -42,7 +42,7 @@ const EventDetails = () => {
                         headers: { Authorization: `Bearer ${token}` }
                     };
                     try {
-                        const teamsRes = await axios.get(`http://localhost:5000/api/teams/event/${id}`, config);
+                        const teamsRes = await api.get(`/api/teams/event/${id}`, config);
                         setTeams(teamsRes.data);
                     } catch (error) {
                         if (error.response?.status === 401) {
@@ -55,12 +55,14 @@ const EventDetails = () => {
                 }
                 setLoading(false);
             } catch (error) {
+                console.error('Error fetching data:', error);
                 toast.error('Failed to load event details');
                 setLoading(false);
             }
         };
+
         fetchEventAndTeams();
-    }, [id, navigate, managerInfo?.id]);
+    }, [id, managerInfo?.id, navigate]);
 
     const getCSVData = () => {
         return teams.map(team => ({

@@ -1,28 +1,29 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { format } from 'date-fns';
 import toast from 'react-hot-toast';
+import api from '../services/api';
 
 const CreateEvent = () => {
   const navigate = useNavigate();
-  const [rules, setRules] = useState(['']);
   const [loading, setLoading] = useState(false);
+  const [rules, setRules] = useState(['']);
   const [formData, setFormData] = useState({
-    title: '',
+    name: '',
     description: '',
     startDate: '',
     endDate: '',
-    venue: {
-      name: '',
-      address: '',
-      city: '',
-    },
+    venue: '',
+    departments: '',
     teamSize: {
-      min: '',
-      max: '',
+      min: '1',
+      max: '4'
     },
-    entryFee: '',
-    maxTeams: '',
+    maxTeams: '50',
+    entryFee: '0',
+    prizePool: '',
+    contactEmail: '',
+    contactPhone: ''
   });
 
   const handleChange = (e) => {
@@ -61,7 +62,7 @@ const CreateEvent = () => {
       const eventData = {
         ...formData,
         rules: rules.filter(rule => rule.trim() !== ''),
-        registrationDeadline: formData.endDate, // Default to end date if not specified
+        registrationDeadline: formData.endDate,
         status: 'upcoming',
         teamSize: {
           min: parseInt(formData.teamSize.min) || 1,
@@ -76,11 +77,8 @@ const CreateEvent = () => {
         throw new Error('Authentication token not found');
       }
 
-      await axios.post('http://localhost:5000/api/events', eventData, {
-        headers: { 
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+      await api.post('/api/events', eventData, {
+        headers: { Authorization: `Bearer ${token}` }
       });
 
       toast.success('Event created successfully!');
@@ -88,6 +86,9 @@ const CreateEvent = () => {
     } catch (error) {
       console.error('Error creating event:', error);
       toast.error(error.response?.data?.message || 'Failed to create event');
+      if (error.response?.status === 401) {
+        navigate('/manager/login');
+      }
     } finally {
       setLoading(false);
     }
@@ -111,8 +112,8 @@ const CreateEvent = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1 font-inter">Event Title</label>
                 <input
                   type="text"
-                  name="title"
-                  value={formData.title}
+                  name="name"
+                  value={formData.name}
                   onChange={handleChange}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                   placeholder="Enter event title"
@@ -168,38 +169,14 @@ const CreateEvent = () => {
             <h2 className="text-xl font-semibold mb-6 font-poppins text-gray-800">Venue Details</h2>
             <div className="grid grid-cols-1 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1 font-inter">Venue Name</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1 font-inter">Venue</label>
                 <input
                   type="text"
-                  name="venue.name"
-                  value={formData.venue.name}
+                  name="venue"
+                  value={formData.venue}
                   onChange={handleChange}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                  placeholder="Enter venue name"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1 font-inter">Address</label>
-                <input
-                  type="text"
-                  name="venue.address"
-                  value={formData.venue.address}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                  placeholder="Enter venue address"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1 font-inter">City</label>
-                <input
-                  type="text"
-                  name="venue.city"
-                  value={formData.venue.city}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                  placeholder="Enter city"
+                  placeholder="Enter venue"
                   required
                 />
               </div>

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
+import api from '../services/api';
 
 const EventTeams = () => {
     const { id } = useParams();
@@ -14,31 +14,35 @@ const EventTeams = () => {
 
     useEffect(() => {
         const fetchEventAndTeams = async () => {
+            if (!token) {
+                navigate('/manager/login');
+                return;
+            }
+
             try {
                 const [eventRes, teamsRes] = await Promise.all([
-                    axios.get(`http://localhost:5000/api/events/${id}`, {
+                    api.get(`/api/events/${id}`, {
                         headers: { Authorization: `Bearer ${token}` }
                     }),
-                    axios.get(`http://localhost:5000/api/teams/event/${id}`, {
+                    api.get(`/api/teams/event/${id}`, {
                         headers: { Authorization: `Bearer ${token}` }
                     })
                 ]);
 
                 setEvent(eventRes.data);
-                setTeams(teamsRes.data || []); // Ensure teams is always an array
+                setTeams(teamsRes.data || []);
                 setLoading(false);
             } catch (error) {
                 console.error('Error fetching data:', error);
                 toast.error('Failed to load event details');
+                if (error.response?.status === 401) {
+                    navigate('/manager/login');
+                }
                 setLoading(false);
             }
         };
 
-        if (token) {
-            fetchEventAndTeams();
-        } else {
-            navigate('/manager/login');
-        }
+        fetchEventAndTeams();
     }, [id, token, navigate]);
 
     const downloadCSV = () => {
