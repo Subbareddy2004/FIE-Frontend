@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import axios from 'axios';
+import { eventApi } from '../services/api';
 import { format, isValid, parseISO } from 'date-fns';
 import toast from 'react-hot-toast';
 
@@ -8,6 +8,7 @@ const StudentEventDetails = () => {
     const { id } = useParams();
     const [event, setEvent] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     // Helper function to safely format dates
     const formatDate = (dateString) => {
@@ -22,21 +23,40 @@ const StudentEventDetails = () => {
     useEffect(() => {
         const fetchEvent = async () => {
             try {
-                const response = await axios.get(`http://localhost:5000/api/events/${id}`);
-                setEvent(response.data);
-                setLoading(false);
+                setLoading(true);
+                setError(null);
+                const eventData = await eventApi.getEvent(id);
+                setEvent(eventData);
             } catch (error) {
+                console.error('Error fetching event:', error);
+                setError(error.response?.data?.message || 'Failed to load event details');
                 toast.error('Failed to load event details');
+            } finally {
                 setLoading(false);
             }
         };
-        fetchEvent();
+
+        if (id) {
+            fetchEvent();
+        }
     }, [id]);
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center min-h-screen">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <div className="flex justify-center items-center min-h-screen">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="text-center py-12">
+                <h2 className="text-2xl font-bold text-red-600 mb-4">Error</h2>
+                <p className="text-gray-600 mb-4">{error}</p>
+                <Link to="/" className="text-blue-500 hover:text-blue-600">
+                    Return to Home
+                </Link>
             </div>
         );
     }
@@ -44,7 +64,11 @@ const StudentEventDetails = () => {
     if (!event) {
         return (
             <div className="text-center py-12">
-                <h2 className="text-2xl font-bold text-gray-900">Event not found</h2>
+                <h2 className="text-2xl font-bold text-gray-800 mb-4">Event not found</h2>
+                <p className="text-gray-600 mb-4">The event you're looking for doesn't exist or has been removed.</p>
+                <Link to="/" className="text-blue-500 hover:text-blue-600">
+                    Return to Home
+                </Link>
             </div>
         );
     }
