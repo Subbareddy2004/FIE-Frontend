@@ -10,6 +10,9 @@ import ManagerEventDetails from './pages/ManagerEventDetails'
 import StudentEventDetails from './pages/StudentEventDetails'
 import RegisterTeam from './pages/RegisterTeam'
 import EventTeams from './pages/EventTeams'
+import PublicEventView from './pages/PublicEventView'
+import RegistrationSuccess from './pages/RegistrationSuccess'
+import TeamDetails from './pages/TeamDetails'
 
 function App() {
   return (
@@ -26,8 +29,11 @@ function App() {
             <Route path="/manager/create-event" element={<CreateEvent />} />
             <Route path="/manager/events/:id" element={<ManagerEventDetails />} />
             <Route path="/manager/events/:id/teams" element={<EventTeams />} />
+            <Route path="/manager/teams/:teamId" element={<TeamDetails />} />
             <Route path="/event/:id" element={<StudentEventDetails />} />
             <Route path="/register-team/:eventId" element={<RegisterTeam />} />
+            <Route path="/registration-success" element={<RegistrationSuccess />} />
+            <Route path="/events/public/:shareLink" element={<PublicEventView />} />
           </Routes>
         </main>
       </div>

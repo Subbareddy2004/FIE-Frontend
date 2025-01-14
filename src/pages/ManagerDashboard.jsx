@@ -7,10 +7,16 @@ import api from '../services/api';
 const ManagerDashboard = () => {
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [sharing, setSharing] = useState(false);
     const navigate = useNavigate();
     const token = localStorage.getItem('token');
 
     useEffect(() => {
+        if (!token) {
+            navigate('/manager/login');
+            return;
+        }
+
         const fetchEvents = async () => {
             try {
                 const response = await api.get('/api/events/manager', {
@@ -28,13 +34,28 @@ const ManagerDashboard = () => {
             }
         };
 
-        if (!token) {
-            navigate('/manager/login');
-            return;
-        }
-
         fetchEvents();
     }, [token, navigate]);
+
+    const handleShare = async (eventId) => {
+        if (sharing) return; // Prevent multiple clicks
+        
+        setSharing(true);
+        try {
+            const response = await api.post(`/api/events/${eventId}/share`, {}, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            const shareUrl = response.data.publicUrl;
+            
+            await navigator.clipboard.writeText(shareUrl);
+            toast.success('Share link copied to clipboard!');
+        } catch (error) {
+            console.error('Error generating share link:', error);
+            toast.error(error.response?.data?.message || 'Failed to generate share link');
+        } finally {
+            setSharing(false);
+        }
+    };
 
     if (loading) {
         return (
@@ -124,17 +145,32 @@ const ManagerDashboard = () => {
                                     </div>
 
                                     <div className="flex justify-between items-center pt-4 border-t">
+                                        <div className="flex gap-2">
+                                            <Link
+                                                to={`/manager/events/${event._id}`}
+                                                className="text-blue-600 hover:text-blue-800 font-medium"
+                                            >
+                                                View Details
+                                            </Link>
+                                            <span className="text-gray-300">|</span>
+                                            <Link
+                                                to={`/manager/events/${event._id}/teams`}
+                                                className="text-blue-600 hover:text-blue-800 font-medium"
+                                            >
+                                                View Teams
+                                            </Link>
+                                        </div>
                                         <button
-                                            onClick={() => navigate(`/manager/events/${event._id}`)}
-                                            className="text-blue-600 hover:text-blue-800 font-medium"
+                                            onClick={() => handleShare(event._id)}
+                                            disabled={sharing}
+                                            className={`inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white ${
+                                                sharing ? 'bg-green-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'
+                                            }`}
                                         >
-                                            View Details
-                                        </button>
-                                        <button
-                                            onClick={() => navigate(`/manager/events/${event._id}/teams`)}
-                                            className="inline-flex items-center px-3 py-1 border border-blue-600 text-sm font-medium rounded-md text-blue-600 hover:bg-blue-50"
-                                        >
-                                            View Teams
+                                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                                            </svg>
+                                            {sharing ? 'Sharing...' : 'Share'}
                                         </button>
                                     </div>
                                 </div>
