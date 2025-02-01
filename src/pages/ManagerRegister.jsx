@@ -23,7 +23,6 @@ const ManagerRegister = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         
-        // Form validation
         if (formData.password !== formData.confirmPassword) {
             toast.error('Passwords do not match!');
             return;
@@ -62,158 +61,155 @@ const ManagerRegister = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-xl shadow-2xl">
-                <div>
-                    <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                        Create Event Manager Account
+        <div className="min-h-screen flex items-center justify-center bg-[#0f172a] py-12 px-4">
+            <div className="w-full max-w-md p-8 bg-[#1e293b] rounded-lg">
+                {/* Logo and Title */}
+                <div className="flex flex-col items-center mb-8">
+                    <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                        </svg>
+                    </div>
+                    <h2 className="text-2xl font-semibold text-white mb-1">
+                        Create Manager Account
                     </h2>
-                    <p className="mt-2 text-center text-sm text-gray-600">
-                        Already have an account?{' '}
-                        <Link to="/manager/login" className="font-medium text-indigo-600 hover:text-indigo-500">
-                            Sign in
-                        </Link>
+                    <p className="text-sm text-gray-400">
+                        Join us to manage your events efficiently
                     </p>
                 </div>
 
-                <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-                    <div className="rounded-md shadow-sm space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="space-y-4">
                         <div>
-                            <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                            <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-1">
                                 Full Name
                             </label>
                             <input
                                 type="text"
-                                name="name"
                                 id="name"
+                                name="name"
                                 required
-                                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                                placeholder="John Doe"
                                 value={formData.name}
                                 onChange={handleChange}
+                                className="w-full px-3 py-2 bg-[#1e293b] border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                placeholder="John Doe"
                             />
                         </div>
 
                         <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                                Email address
+                            <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">
+                                Email Address
                             </label>
                             <input
                                 type="email"
-                                name="email"
                                 id="email"
+                                name="email"
                                 required
-                                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                                placeholder="john@example.com"
                                 value={formData.email}
                                 onChange={handleChange}
+                                className="w-full px-3 py-2 bg-[#1e293b] border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                placeholder="john@example.com"
                             />
                         </div>
 
                         <div>
-                            <label htmlFor="organization" className="block text-sm font-medium text-gray-700">
-                                Organization/Institution
+                            <label htmlFor="organization" className="block text-sm font-medium text-gray-300 mb-1">
+                                Organization
                             </label>
                             <input
                                 type="text"
-                                name="organization"
                                 id="organization"
+                                name="organization"
                                 required
-                                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                                placeholder="Your Institution Name"
                                 value={formData.organization}
                                 onChange={handleChange}
+                                className="w-full px-3 py-2 bg-[#1e293b] border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                placeholder="Company or Institution Name"
                             />
                         </div>
 
                         <div>
-                            <label htmlFor="department" className="block text-sm font-medium text-gray-700">
+                            <label htmlFor="department" className="block text-sm font-medium text-gray-300 mb-1">
                                 Department
                             </label>
                             <input
                                 type="text"
-                                name="department"
                                 id="department"
-                                required
-                                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                                placeholder="e.g., Computer Science"
+                                name="department"
                                 value={formData.department}
                                 onChange={handleChange}
+                                className="w-full px-3 py-2 bg-[#1e293b] border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                placeholder="Your Department (Optional)"
                             />
                         </div>
 
                         <div>
-                            <label htmlFor="role" className="block text-sm font-medium text-gray-700">
+                            <label htmlFor="role" className="block text-sm font-medium text-gray-300 mb-1">
                                 Role
                             </label>
                             <select
-                                name="role"
                                 id="role"
+                                name="role"
                                 required
-                                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                                 value={formData.role}
                                 onChange={handleChange}
+                                className="w-full px-3 py-2 bg-[#1e293b] border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                             >
-                                <option value="professor">Professor</option>
-                                <option value="hod">HOD</option>
+                                <option value="other">Select Role</option>
+                                <option value="event_manager">Event Manager</option>
                                 <option value="coordinator">Coordinator</option>
-                                <option value="other">Other</option>
+                                <option value="admin">Administrator</option>
                             </select>
                         </div>
 
                         <div>
-                            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                            <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-1">
                                 Password
                             </label>
                             <input
                                 type="password"
-                                name="password"
                                 id="password"
+                                name="password"
                                 required
-                                minLength="6"
-                                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                                placeholder="••••••••"
                                 value={formData.password}
                                 onChange={handleChange}
+                                className="w-full px-3 py-2 bg-[#1e293b] border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                placeholder="Min. 6 characters"
                             />
                         </div>
 
                         <div>
-                            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+                            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-300 mb-1">
                                 Confirm Password
                             </label>
                             <input
                                 type="password"
-                                name="confirmPassword"
                                 id="confirmPassword"
+                                name="confirmPassword"
                                 required
-                                minLength="6"
-                                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                                placeholder="••••••••"
                                 value={formData.confirmPassword}
                                 onChange={handleChange}
+                                className="w-full px-3 py-2 bg-[#1e293b] border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                placeholder="Confirm your password"
                             />
                         </div>
                     </div>
 
-                    <div>
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-                        >
-                            {loading ? (
-                                <span className="flex items-center">
-                                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
-                                    Creating account...
-                                </span>
-                            ) : (
-                                'Create Account'
-                            )}
-                        </button>
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full py-2 px-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-medium rounded-md focus:outline-none"
+                    >
+                        {loading ? 'Creating Account...' : 'Create Account'}
+                    </button>
+
+                    <div className="text-center text-sm">
+                        <p className="text-gray-400">
+                            Already have an account?{' '}
+                            <Link to="/manager/login" className="font-medium text-purple-400">
+                                Sign in instead
+                            </Link>
+                        </p>
                     </div>
                 </form>
             </div>

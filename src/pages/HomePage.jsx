@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
+import Chatbot from '../components/Chatbot';
 
 const HomePage = () => {
   const { isDarkMode } = useTheme();
@@ -119,6 +120,9 @@ const HomePage = () => {
           </div>
         </div>
       </div>
+
+      {/* Chatbot */}
+      <Chatbot />
     </div>
   );
 };
