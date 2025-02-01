@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
-import api from '../services/api';
+import { eventApi } from '../services/api';
 
 const CreateEvent = () => {
   const navigate = useNavigate();
@@ -13,24 +13,34 @@ const CreateEvent = () => {
     description: '',
     startDate: '',
     endDate: '',
+    registrationDeadline: '',
     venue: {
       name: '',
       address: '',
-      city: ''
+      city: '',
+      state: '',
+      country: ''
     },
-    teamSize: {
-      min: '1',
-      max: '4'
-    },
-    maxTeams: '50',
-    entryFee: '0',
+    minTeamSize: 1,
+    maxTeamSize: 4,
+    maxTeams: 50,
+    entryFee: 0,
     paymentDetails: {
       upiId: '',
-      paymentRequired: false
+      accountName: '',
+      notes: ''
     },
-    contactEmail: '',
-    contactPhone: '',
-    rules: ['']
+    whatsappLink: '',
+    rules: [''],
+    departments: [''],
+    skills: [''],
+    prizes: {
+      first: 0,
+      second: 0,
+      third: 0,
+      consolation: 0
+    },
+    image: ''
   });
 
   const handleChange = (e) => {
@@ -79,49 +89,51 @@ const CreateEvent = () => {
     setLoading(true);
 
     try {
+      // Validate required fields
+      const requiredFields = ['title', 'description', 'startDate', 'endDate', 'registrationDeadline'];
+      const missingFields = requiredFields.filter(field => !formData[field]);
+      if (missingFields.length > 0) {
+        throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
+      }
+
+      // Validate venue fields
+      const venueFields = ['name', 'address', 'city', 'state', 'country'];
+      const missingVenueFields = venueFields.filter(field => !formData.venue[field]);
+      if (missingVenueFields.length > 0) {
+        throw new Error(`Missing venue fields: ${missingVenueFields.join(', ')}`);
+      }
+
       // Validate UPI ID if entry fee is greater than 0
       if (parseInt(formData.entryFee) > 0 && !formData.paymentDetails.upiId.trim()) {
-        toast.error('Please enter UPI ID for payment collection');
-        setLoading(false);
-        return;
+        throw new Error('Please enter UPI ID for payment collection');
       }
 
-      const eventData = {
-        ...formData,
-        rules: rules.filter(rule => rule.trim() !== ''),
-        registrationDeadline: formData.endDate,
-        status: 'upcoming',
-        teamSize: {
-          min: parseInt(formData.teamSize.min) || 1,
-          max: parseInt(formData.teamSize.max) || 4
-        },
-        maxTeams: parseInt(formData.maxTeams) || 50,
-        entryFee: parseInt(formData.entryFee) || 0
+      // Format dates to ISO string
+      const formatDate = (date) => {
+        if (!date) return null;
+        const d = new Date(date);
+        return d instanceof Date && !isNaN(d) ? d.toISOString() : null;
       };
 
-      const token = localStorage.getItem('token');
-      if (!token) {
-        toast.error('Please login first');
-        navigate('/manager/login');
-        return;
+      const formattedData = {
+        ...formData,
+        startDate: new Date(formData.startDate).toISOString(),
+        endDate: new Date(formData.endDate).toISOString(),
+        registrationDeadline: new Date(formData.registrationDeadline).toISOString()
+      };
+
+      const response = await eventApi.createEvent(formattedData);
+      
+      if (response.data) {
+        toast.success('Event created successfully!');
+        setTimeout(() => {
+          navigate('/manager/dashboard');
+        }, 1500);
       }
-
-      const response = await api.post('/api/events', eventData, {
-        headers: { 
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      toast.success('Event created successfully!');
-      navigate('/manager/dashboard');
     } catch (error) {
       console.error('Error creating event:', error);
-      const errorMessage = error.response?.data?.message || error.response?.data?.error || 'Failed to create event';
+      const errorMessage = error.response?.data?.message || 'Failed to create event. Please try again.';
       toast.error(errorMessage);
-      if (error.response?.status === 401) {
-        navigate('/manager/login');
-      }
     } finally {
       setLoading(false);
     }
@@ -176,7 +188,7 @@ const CreateEvent = () => {
             <div className="space-y-4">
               <h3 className="text-lg font-medium text-gray-900">Date and Time</h3>
               
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <div>
                   <label htmlFor="startDate" className="block text-sm font-medium text-gray-700">
                     Start Date
@@ -206,13 +218,27 @@ const CreateEvent = () => {
                     required
                   />
                 </div>
+
+                <div>
+                  <label htmlFor="registrationDeadline" className="block text-sm font-medium text-gray-700">
+                    Registration Deadline
+                  </label>
+                  <input
+                    type="datetime-local"
+                    id="registrationDeadline"
+                    name="registrationDeadline"
+                    value={formData.registrationDeadline}
+                    onChange={handleChange}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    required
+                  />
+                </div>
               </div>
             </div>
 
             {/* Venue Information */}
             <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-900">Venue Information</h3>
-              
+              <h3 className="text-lg font-medium text-gray-900">Venue Details</h3>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <label htmlFor="venue.name" className="block text-sm font-medium text-gray-700">
@@ -223,6 +249,21 @@ const CreateEvent = () => {
                     id="venue.name"
                     name="venue.name"
                     value={formData.venue.name}
+                    onChange={handleChange}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="venue.address" className="block text-sm font-medium text-gray-700">
+                    Address
+                  </label>
+                  <input
+                    type="text"
+                    id="venue.address"
+                    name="venue.address"
+                    value={formData.venue.address}
                     onChange={handleChange}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                     required
@@ -243,21 +284,36 @@ const CreateEvent = () => {
                     required
                   />
                 </div>
-              </div>
 
-              <div>
-                <label htmlFor="venue.address" className="block text-sm font-medium text-gray-700">
-                  Address
-                </label>
-                <textarea
-                  id="venue.address"
-                  name="venue.address"
-                  rows="2"
-                  value={formData.venue.address}
-                  onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  required
-                />
+                <div>
+                  <label htmlFor="venue.state" className="block text-sm font-medium text-gray-700">
+                    State
+                  </label>
+                  <input
+                    type="text"
+                    id="venue.state"
+                    name="venue.state"
+                    value={formData.venue.state}
+                    onChange={handleChange}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="venue.country" className="block text-sm font-medium text-gray-700">
+                    Country
+                  </label>
+                  <input
+                    type="text"
+                    id="venue.country"
+                    name="venue.country"
+                    value={formData.venue.country}
+                    onChange={handleChange}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    required
+                  />
+                </div>
               </div>
             </div>
 
@@ -267,15 +323,15 @@ const CreateEvent = () => {
               
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <div>
-                  <label htmlFor="teamSize.min" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="minTeamSize" className="block text-sm font-medium text-gray-700">
                     Min Team Size
                   </label>
                   <input
                     type="number"
-                    id="teamSize.min"
-                    name="teamSize.min"
+                    id="minTeamSize"
+                    name="minTeamSize"
                     min="1"
-                    value={formData.teamSize.min}
+                    value={formData.minTeamSize}
                     onChange={handleChange}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                     required
@@ -283,15 +339,15 @@ const CreateEvent = () => {
                 </div>
 
                 <div>
-                  <label htmlFor="teamSize.max" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="maxTeamSize" className="block text-sm font-medium text-gray-700">
                     Max Team Size
                   </label>
                   <input
                     type="number"
-                    id="teamSize.max"
-                    name="teamSize.max"
+                    id="maxTeamSize"
+                    name="maxTeamSize"
                     min="1"
-                    value={formData.teamSize.max}
+                    value={formData.maxTeamSize}
                     onChange={handleChange}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                     required
@@ -334,28 +390,80 @@ const CreateEvent = () => {
                 </div>
 
                 {parseInt(formData.entryFee) > 0 && (
-                  <div className="bg-white p-4 rounded-md border border-blue-200">
-                    <label htmlFor="paymentDetails.upiId" className="block text-sm font-medium text-gray-700">
-                      UPI ID for Payment Collection
-                      <span className="text-red-500 ml-1">*</span>
-                    </label>
-                    <div className="mt-1">
+                  <div className="space-y-4">
+                    <div>
+                      <label htmlFor="paymentDetails.upiId" className="block text-sm font-medium text-gray-700">
+                        UPI ID
+                      </label>
                       <input
                         type="text"
                         id="paymentDetails.upiId"
                         name="paymentDetails.upiId"
                         value={formData.paymentDetails.upiId}
                         onChange={handleChange}
-                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                        placeholder="example@upi"
-                        required={parseInt(formData.entryFee) > 0}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                        required
                       />
                       <p className="mt-1 text-sm text-gray-500">
-                        This UPI ID will be shown to participants for making payments
+                        Enter your UPI ID where participants should make the payment
                       </p>
+                    </div>
+
+                    <div>
+                      <label htmlFor="paymentDetails.accountName" className="block text-sm font-medium text-gray-700">
+                        Account Name
+                      </label>
+                      <input
+                        type="text"
+                        id="paymentDetails.accountName"
+                        name="paymentDetails.accountName"
+                        value={formData.paymentDetails.accountName}
+                        onChange={handleChange}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="paymentDetails.notes" className="block text-sm font-medium text-gray-700">
+                        Payment Instructions
+                      </label>
+                      <textarea
+                        id="paymentDetails.notes"
+                        name="paymentDetails.notes"
+                        value={formData.paymentDetails.notes}
+                        onChange={handleChange}
+                        rows="2"
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                        placeholder="Any additional payment instructions..."
+                      />
                     </div>
                   </div>
                 )}
+              </div>
+            </div>
+
+            {/* Communication */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium text-gray-900">Communication</h3>
+              
+              <div>
+                <label htmlFor="whatsappLink" className="block text-sm font-medium text-gray-700">
+                  WhatsApp Group Link (Optional)
+                </label>
+                <div className="mt-1 relative rounded-md shadow-sm">
+                  <input
+                    type="url"
+                    id="whatsappLink"
+                    name="whatsappLink"
+                    value={formData.whatsappLink}
+                    onChange={handleChange}
+                    placeholder="https://chat.whatsapp.com/..."
+                    className="block w-full rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
+                <p className="mt-1 text-sm text-gray-500">
+                  Enter the WhatsApp group invite link where participants can join for updates
+                </p>
               </div>
             </div>
 

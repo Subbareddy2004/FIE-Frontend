@@ -1,0 +1,66 @@
+.hackon-text {
+    background: linear-gradient(
+        45deg,
+        #FFD700,
+        #FDB931,
+        #FFA500,
+        #FFD700,
+        #FDB931,
+        #B8860B
+    );
+    background-size: 200% auto;
+    color: transparent;
+    -webkit-background-clip: text;
+    background-clip: text;
+    animation: shine 3s linear infinite;
+    text-shadow: 
+        0 1px 0 #cca300,
+        0 2px 0 #b38f00,
+        0 3px 0 #997a00,
+        0 4px 0 #806600,
+        0 5px 0 #665200,
+        0 6px 1px rgba(0,0,0,.1),
+        0 0 5px rgba(0,0,0,.1),
+        0 1px 3px rgba(0,0,0,.3),
+        0 3px 5px rgba(0,0,0,.2),
+        0 5px 10px rgba(0,0,0,.25),
+        0 10px 10px rgba(0,0,0,.2),
+        0 20px 20px rgba(0,0,0,.15);
+    display: inline-block;
+    transform: perspective(1000px) rotateX(10deg);
+    transform-style: preserve-3d;
+    position: relative;
+    transition: transform 0.3s ease;
+}
+
+.hackon-text::after {
+    content: 'HackOn';
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform: translateZ(-10px);
+    background: linear-gradient(
+        45deg,
+        #B8860B,
+        #DAA520,
+        #FFD700,
+        #FDB931,
+        #DAA520,
+        #B8860B
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    opacity: 0.5;
+    filter: blur(2px);
+}
+
+.hackon-text:hover {
+    transform: perspective(1000px) rotateX(0deg) scale(1.05);
+}
+
+@keyframes shine {
+    to {
+        background-position: 200% center;
+    }
+}

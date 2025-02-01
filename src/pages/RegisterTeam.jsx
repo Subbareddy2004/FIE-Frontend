@@ -15,18 +15,12 @@ const RegisterTeam = () => {
   const [members, setMembers] = useState([
     { name: '', email: '', registerNumber: '', mobileNumber: '', isLeader: true }
   ]);
+  const [registering, setRegistering] = useState(false);
 
   useEffect(() => {
     const fetchEvent = async () => {
       try {
-        let response;
-        // Check if this is a public share link
-        if (eventId.includes('-')) {
-          response = await api.get(`/api/public/events/${eventId}`);
-        } else {
-          response = await api.get(`/api/events/${eventId}`);
-        }
-        
+        const response = await api.get(`/api/public/events/${eventId}`);
         const eventData = response.data;
         
         // Validate payment details if entry fee is set
@@ -49,7 +43,7 @@ const RegisterTeam = () => {
         } else {
           toast.error('Error loading event details. Please try again later.');
         }
-        navigate('/');
+        navigate('/events');
       } finally {
         setLoading(false);
       }
@@ -59,15 +53,15 @@ const RegisterTeam = () => {
   }, [eventId, navigate]);
 
   const handleAddMember = () => {
-    if (members.length < (event?.teamSize?.max || 4)) {
+    if (members.length < (event?.maxTeamSize || 4)) {
       setMembers([...members, { name: '', email: '', registerNumber: '', mobileNumber: '', isLeader: false }]);
     } else {
-      toast.error(`Maximum ${event?.teamSize?.max || 4} members allowed`);
+      toast.error(`Maximum ${event?.maxTeamSize || 4} members allowed`);
     }
   };
 
   const handleRemoveMember = (index) => {
-    if (!members[index].isLeader && members.length > (event?.teamSize?.min || 1)) {
+    if (!members[index].isLeader && members.length > 1) {
       setMembers(members.filter((_, i) => i !== index));
     }
   };
@@ -87,16 +81,22 @@ const RegisterTeam = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setRegistering(true);
 
     // Validate team name
     if (!teamName.trim()) {
       toast.error('Please enter a team name');
+      setRegistering(false);
       return;
     }
 
     // Validate members
-    if (members.length < event.teamSize.min || members.length > event.teamSize.max) {
-      toast.error(`Team size must be between ${event.teamSize.min} and ${event.teamSize.max} members`);
+    const minTeamSize = event.minTeamSize || 1;
+    const maxTeamSize = event.maxTeamSize || 4;
+    
+    if (members.length < minTeamSize || members.length > maxTeamSize) {
+      toast.error(`Team size must be between ${minTeamSize} and ${maxTeamSize} members`);
+      setRegistering(false);
       return;
     }
 
@@ -104,6 +104,7 @@ const RegisterTeam = () => {
     for (const member of members) {
       if (!member.name.trim() || !member.email.trim() || !member.registerNumber.trim() || !member.mobileNumber.trim()) {
         toast.error('Please fill in all member details');
+        setRegistering(false);
         return;
       }
 
@@ -111,6 +112,7 @@ const RegisterTeam = () => {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(member.email)) {
         toast.error('Please enter valid email addresses');
+        setRegistering(false);
         return;
       }
 
@@ -118,6 +120,7 @@ const RegisterTeam = () => {
       const mobileRegex = /^\d{10}$/;
       if (!mobileRegex.test(member.mobileNumber)) {
         toast.error('Please enter valid 10-digit mobile numbers');
+        setRegistering(false);
         return;
       }
     }
@@ -126,37 +129,33 @@ const RegisterTeam = () => {
     if (event.entryFee > 0) {
       if (!event.paymentDetails?.upiId) {
         toast.error('Payment details are not configured. Please contact the event organizer.');
+        setRegistering(false);
         return;
       }
       if (!upiTransactionId.trim()) {
         toast.error('Please enter the UPI transaction ID');
+        setRegistering(false);
         return;
       }
     }
 
     try {
-      const registrationEndpoint = eventId.includes('-')
-        ? `/api/public/events/${eventId}/register`
-        : `/api/teams/register/${event._id}`;
-
-      const response = await api.post(registrationEndpoint, {
-        name: teamName,
-        members: members,
+      const response = await api.post(`/api/public/events/${eventId}/register`, {
+        teamName,
+        members,
         upiTransactionId: event.entryFee > 0 ? upiTransactionId : undefined
       });
 
-      toast.success('Team registered successfully! Please wait for payment verification.');
-      navigate('/registration-success', { 
-        state: { 
-          teamName, 
-          eventName: event.title,
-          paymentStatus: event.entryFee > 0 ? 'pending' : 'not_required',
-          transactionId: upiTransactionId
-        } 
+      toast.success('Team registered successfully!');
+      
+      // Navigate to the registration success page
+      navigate('/student/registered', { 
+        replace: true // This prevents going back to the registration form
       });
     } catch (error) {
       console.error('Registration error:', error);
       toast.error(error.response?.data?.message || 'Error registering team');
+      setRegistering(false);
     }
   };
 
@@ -253,7 +252,7 @@ const RegisterTeam = () => {
                       <div className="flex">
                         <div className="flex-shrink-0">
                           <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                            <path fillRule="evenodd" d="M9.668 2.146a.5.5 0 01.664 0l1.605 1.357 1.91-.329a.5.5 0 01.582.34l.477 1.76 1.76.477a.5.5 0 01.34.582l-.329 1.91 1.357 1.605a.5.5 0 010 .664l-1.357 1.605.329 1.91a.5.5 0 01-.34.582l-1.76.477-.477 1.76a.5.5 0 01-.582.34l-1.91-.329-1.605 1.357a.5.5 0 01-.664 0l-1.605-1.357-1.91.329a.5.5 0 01-.582-.34l-.477-1.76-1.76-.477a.5.5 0 01-.34-.582l.329-1.91L2.146 10.332a.5.5 0 010-.664l1.357-1.605-.329-1.91a.5.5 0 01.34-.582l1.76-.477.477-1.76a.5.5 0 01.582-.34l1.91.329L9.668 2.146zM8 10a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
                           </svg>
                         </div>
                         <div className="ml-3">
@@ -370,15 +369,22 @@ const RegisterTeam = () => {
               ))}
             </div>
 
-            <div className="flex justify-end pt-6">
+            <div className="mt-8 flex justify-center">
               <button
                 type="submit"
-                className="inline-flex items-center px-6 py-3 border border-transparent text-lg font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                disabled={registering}
+                className={`w-full px-6 py-3 rounded-lg bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white text-lg font-semibold 
+                  ${registering ? 'opacity-75 cursor-not-allowed' : 'hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600'} 
+                  transition-colors duration-200 flex items-center justify-center space-x-2`}
               >
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Register Team
+                {registering ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    <span>Registering...</span>
+                  </>
+                ) : (
+                  <span>Register Team</span>
+                )}
               </button>
             </div>
           </form>

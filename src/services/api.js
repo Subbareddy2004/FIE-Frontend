@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create axios instance with base URL from environment variables
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_BASE_URL || 'https://event-management-backend-lovat.vercel.app',
+    baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000',
     timeout: 10000, // 10 second timeout
     headers: {
         'Content-Type': 'application/json'
@@ -12,9 +12,7 @@ const api = axios.create({
 // Add a request interceptor for authentication
 api.interceptors.request.use(
     (config) => {
-        // Log the request
-        console.log('Making request to:', config.url);
-        
+        // Get the appropriate token based on the route
         const token = localStorage.getItem('token');
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
@@ -30,7 +28,6 @@ api.interceptors.request.use(
 // Add a response interceptor for error handling
 api.interceptors.response.use(
     (response) => {
-        console.log('Response received:', response.status);
         return response;
     },
     (error) => {
@@ -43,18 +40,35 @@ api.interceptors.response.use(
 
         // Handle specific error cases
         if (error.response?.status === 401) {
-            console.log('Unauthorized access, redirecting to login');
+            // Clear auth data
             localStorage.removeItem('token');
-            window.location.href = '/login';
-        } else if (error.response?.status === 404) {
-            console.log('Resource not found');
-            // You can handle 404 specifically here
-        } else if (error.code === 'ECONNABORTED') {
-            console.log('Request timed out');
-            // Handle timeout
-        } else if (!error.response) {
-            console.log('Network error occurred');
-            // Handle network errors
+            localStorage.removeItem('user');
+
+            // Get the current path
+            const currentPath = window.location.pathname;
+
+            // Define public routes that don't require redirection
+            const publicRoutes = [
+                '/login',
+                '/student/login',
+                '/register',
+                '/student/register',
+                '/events',
+                '/'
+            ];
+
+            // Check if we're not already on a public route
+            if (!publicRoutes.some(route => currentPath.startsWith(route))) {
+                // Store the current location for redirect after login
+                sessionStorage.setItem('redirectPath', currentPath);
+
+                // Determine the appropriate login route
+                const isStudentRoute = currentPath.startsWith('/student');
+                const loginPath = isStudentRoute ? '/student/login' : '/manager/login';
+
+                // Redirect to the appropriate login page
+                window.location.href = loginPath;
+            }
         }
 
         return Promise.reject(error);
@@ -63,58 +77,87 @@ api.interceptors.response.use(
 
 // Event-related API functions
 const eventApi = {
-    getEvent: async (id) => {
-        try {
-            console.log('Fetching event with ID:', id);
-            const response = await api.get(`/api/events/${id}`);
-            console.log('Event data received:', response.data);
-            return response.data;
-        } catch (error) {
-            console.error('Error fetching event:', error);
-            throw error;
-        }
+    // Get all events
+    async getAllEvents() {
+        const response = await api.get('/api/events');
+        return response.data;
     },
-    
-    getAllEvents: async () => {
-        try {
-            const response = await api.get('/api/events');
-            return response.data;
-        } catch (error) {
-            console.error('Error fetching all events:', error);
-            throw error;
-        }
+
+    // Get single event
+    async getEvent(id) {
+        const response = await api.get(`/api/events/${id}`);
+        return response.data;
     },
-    
-    createEvent: async (eventData) => {
-        try {
-            const response = await api.post('/api/events', eventData);
-            return response.data;
-        } catch (error) {
-            console.error('Error creating event:', error);
-            throw error;
-        }
+
+    // Create event
+    async createEvent(eventData) {
+        const response = await api.post('/api/events', eventData);
+        return response.data;
     },
-    
-    updateEvent: async (id, eventData) => {
-        try {
-            const response = await api.put(`/api/events/${id}`, eventData);
-            return response.data;
-        } catch (error) {
-            console.error('Error updating event:', error);
-            throw error;
-        }
+
+    // Update event
+    async updateEvent(id, eventData) {
+        const response = await api.put(`/api/events/${id}`, eventData);
+        return response.data;
     },
-    
-    deleteEvent: async (id) => {
-        try {
-            const response = await api.delete(`/api/events/${id}`);
-            return response.data;
-        } catch (error) {
-            console.error('Error deleting event:', error);
-            throw error;
-        }
+
+    // Delete event
+    async deleteEvent(id) {
+        const response = await api.delete(`/api/events/${id}`);
+        return response.data;
+    },
+
+    // Get event teams
+    async getEventTeams(eventId) {
+        const response = await api.get(`/api/events/${eventId}/teams`);
+        return response.data;
+    },
+
+    // Get manager's events
+    async getManagerEvents() {
+        const response = await api.get('/api/manager/events');
+        return response.data;
     }
 };
 
-export { eventApi };
+// Auth-related API functions
+const authApi = {
+    // Manager login
+    async login(credentials) {
+        const response = await api.post('/api/auth/login', credentials);
+        return response.data;
+    },
+
+    // Manager register
+    async register(userData) {
+        const response = await api.post('/api/auth/register', userData);
+        return response.data;
+    },
+
+    // Student login
+    async studentLogin(credentials) {
+        const response = await api.post('/api/student/login', credentials);
+        return response.data;
+    },
+
+    // Student register
+    async studentRegister(userData) {
+        const response = await api.post('/api/student/register', userData);
+        return response.data;
+    },
+
+    // Get student profile
+    async getStudentProfile() {
+        const response = await api.get('/api/student/profile');
+        return response.data;
+    },
+
+    // Get manager profile
+    async getManagerProfile() {
+        const response = await api.get('/api/manager/profile');
+        return response.data;
+    }
+};
+
+export { eventApi, authApi };
 export default api;
