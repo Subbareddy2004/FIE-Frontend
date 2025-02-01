@@ -1,9 +1,7 @@
-import { API_BASE_URL } from '../config/api';
-
 class ChatbotService {
   async askQuestion(question) {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/chatbot/ask`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/chatbot/ask`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
