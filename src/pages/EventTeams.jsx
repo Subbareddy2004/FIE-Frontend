@@ -4,6 +4,7 @@ import { format, parseISO } from 'date-fns';
 import toast from 'react-hot-toast';
 import { useTheme } from '../context/ThemeContext';
 import api from '../services/api';
+import { API_ENDPOINTS } from '../config/api';
 
 const EventTeams = () => {
     const { isDarkMode } = useTheme();
@@ -52,7 +53,7 @@ const EventTeams = () => {
 
     const handleExportCSV = async () => {
         try {
-            const response = await api.get(`/api/events/${id}/export-csv`, {
+            const response = await api.get(API_ENDPOINTS.EVENTS.EXPORT_CSV(id), {
                 params: { status: statusFilter },
                 responseType: 'blob',
                 headers: { Authorization: `Bearer ${token}` }
@@ -77,7 +78,7 @@ const EventTeams = () => {
 
     const handleExportPDF = async () => {
         try {
-            const response = await api.get(`/api/events/${id}/export-pdf`, {
+            const response = await api.get(API_ENDPOINTS.EVENTS.EXPORT_PDF(id), {
                 params: { status: statusFilter },
                 responseType: 'blob',
                 headers: { Authorization: `Bearer ${token}` }

@@ -21,9 +21,10 @@ const CreateEvent = () => {
       state: '',
       country: ''
     },
-    minTeamSize: 1,
-    maxTeamSize: 4,
-    maxTeams: 50,
+    maxTeamSize: '',
+    minTeamSize: '',
+    prizes: 'To be announced',
+    requirements: 'No specific requirements',
     entryFee: 0,
     paymentDetails: {
       upiId: '',
@@ -34,12 +35,7 @@ const CreateEvent = () => {
     rules: [''],
     departments: [''],
     skills: [''],
-    prizes: {
-      first: 0,
-      second: 0,
-      third: 0,
-      consolation: 0
-    },
+    maxTeams: 50,
     image: ''
   });
 
@@ -108,15 +104,11 @@ const CreateEvent = () => {
         throw new Error('Please enter UPI ID for payment collection');
       }
 
-      // Format dates to ISO string
-      const formatDate = (date) => {
-        if (!date) return null;
-        const d = new Date(date);
-        return d instanceof Date && !isNaN(d) ? d.toISOString() : null;
-      };
-
+      // Format the data before submission
       const formattedData = {
         ...formData,
+        prizes: formData.prizes || 'To be announced',
+        requirements: formData.requirements || 'No specific requirements',
         startDate: new Date(formData.startDate).toISOString(),
         endDate: new Date(formData.endDate).toISOString(),
         registrationDeadline: new Date(formData.registrationDeadline).toISOString()
@@ -124,7 +116,7 @@ const CreateEvent = () => {
 
       const response = await eventApi.createEvent(formattedData);
       
-      if (response.data) {
+      if (response) {
         toast.success('Event created successfully!');
         setTimeout(() => {
           navigate('/manager/dashboard');
@@ -132,7 +124,7 @@ const CreateEvent = () => {
       }
     } catch (error) {
       console.error('Error creating event:', error);
-      const errorMessage = error.response?.data?.message || 'Failed to create event. Please try again.';
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to create event. Please try again.';
       toast.error(errorMessage);
     } finally {
       setLoading(false);
