@@ -255,6 +255,46 @@ const Navbar = () => {
           <div className={`px-2 pt-2 pb-3 space-y-1 ${isDarkMode ? 'bg-gray-900' : 'bg-white'}`}>
             {getNavLinks()}
           </div>
+          
+          {/* Add user options for mobile */}
+          {user && (
+            <div className={`pt-4 pb-3 border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+              <div className="px-2 space-y-1">
+                {/* User info section */}
+                <div className={`px-3 py-2 rounded-md text-base font-medium ${
+                  isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                }`}>
+                  {user.name}
+                </div>
+                
+                {/* Profile link */}
+                <Link
+                  to={isStudent ? "/student/profile" : "/manager/profile"}
+                  className={`block px-3 py-2 rounded-md text-base font-medium ${
+                    isDarkMode 
+                      ? 'text-gray-300 hover:text-white hover:bg-gray-700' 
+                      : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
+                  }`}
+                >
+                  Profile
+                </Link>
+                
+                {/* Logout button */}
+                <button
+                  onClick={handleLogout}
+                  className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium ${
+                    isDarkMode 
+                      ? 'text-gray-300 hover:text-white hover:bg-gray-700' 
+                      : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
+                  }`}
+                >
+                  Sign out
+                </button>
+              </div>
+            </div>
+          )}
+          
+          {/* Keep the existing non-logged-in user options */}
           {!user && (
             <div className={`pt-4 pb-3 border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
               <div className="px-2 space-y-1">
@@ -262,7 +302,7 @@ const Navbar = () => {
                   to="/student/login"
                   className={`block px-3 py-2 rounded-md text-base font-medium ${
                     isDarkMode
-                      ? 'text-gray-300 hover:text-white hover:bg-gray-800'
+                      ? 'text-gray-300 hover:text-white hover:bg-gray-700'
                       : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
                   }`}
                 >
